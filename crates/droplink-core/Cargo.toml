@@ -1,0 +1,38 @@
+[package]
+name = "droplink-core"
+description = "DropLink networking, security, transfer and clipboard engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "logging"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "logging"] }
+rcgen = "0.13"
+rustls-pemfile = "2"
+rusqlite = { version = "0.32", features = ["bundled"] }
+mdns-sd = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "2"
+tracing = "0.1"
+rand = "0.8"
+filetime = "0.2"
+parking_lot = "0.12"
+tokio-util = "0.7"
+dirs = "5"
+if-addrs = "0.13"
+gethostname = "0.5"
+arboard = { version = "3", default-features = false, features = ["image-data"] }
+png = "0.17"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_DataExchange"] }
+
+[dev-dependencies]
+tempfile = "3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -1,0 +1,20 @@
+﻿[workspace]
+resolver = "2"
+members = ["crates/droplink-core", "src-tauri"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+authors = ["Dushan Fernando"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+strip = true
+
+# Hashing and TLS dominate transfer CPU cost; keep them optimised even in debug
+# builds so local testing reflects real throughput.
+[profile.dev.package."*"]
+opt-level = 2

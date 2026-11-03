@@ -1,0 +1,230 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+/*
+ * DropLink design tokens.
+ * Every colour in the UI comes from these variables, so both themes stay in
+ * lockstep. Components use the Tailwind names declared in @theme below
+ * (bg-surface, text-fg-muted, border-line, …) — never raw hex values.
+ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0d10;
+  --sidebar: #0f1013;
+  --surface: #15161a;
+  --surface-2: #1b1c21;
+  --surface-3: #22242a;
+  --elevated: #1d1f24;
+  --overlay: rgba(6, 7, 9, 0.62);
+  --line: rgba(255, 255, 255, 0.065);
+  --line-strong: rgba(255, 255, 255, 0.11);
+  --fg: #ecedf0;
+  --fg-muted: #9b9ea8;
+  --fg-subtle: #686c77;
+  --accent: #8584ff;
+  --accent-strong: #6f6dff;
+  --accent-soft: rgba(133, 132, 255, 0.14);
+  --accent-fg: #ffffff;
+  --brand-a: #6e6bff;
+  --brand-b: #2bb8f0;
+  --success: #3ccf8e;
+  --success-soft: rgba(60, 207, 142, 0.13);
+  --warning: #f2b64a;
+  --warning-soft: rgba(242, 182, 74, 0.13);
+  --danger: #f2585d;
+  --danger-soft: rgba(242, 88, 93, 0.13);
+  --info: #4fb6f2;
+  --info-soft: rgba(79, 182, 242, 0.13);
+  --shadow-color: 0 0% 0%;
+  --glass: rgba(24, 25, 30, 0.72);
+  --ring: rgba(133, 132, 255, 0.45);
+  --grain-opacity: 0.025;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --sidebar: #eceef2;
+  --surface: #ffffff;
+  --surface-2: #f3f4f7;
+  --surface-3: #e9ebf0;
+  --elevated: #ffffff;
+  --overlay: rgba(20, 22, 30, 0.32);
+  --line: rgba(15, 18, 30, 0.075);
+  --line-strong: rgba(15, 18, 30, 0.13);
+  --fg: #15171c;
+  --fg-muted: #5b606d;
+  --fg-subtle: #8a8f9b;
+  --accent: #5d5bf0;
+  --accent-strong: #4b48e6;
+  --accent-soft: rgba(93, 91, 240, 0.1);
+  --accent-fg: #ffffff;
+  --success: #1f9d66;
+  --success-soft: rgba(31, 157, 102, 0.1);
+  --warning: #c07c0c;
+  --warning-soft: rgba(192, 124, 12, 0.1);
+  --danger: #d93b40;
+  --danger-soft: rgba(217, 59, 64, 0.09);
+  --info: #1d84c4;
+  --info-soft: rgba(29, 132, 196, 0.1);
+  --shadow-color: 225 25% 20%;
+  --glass: rgba(255, 255, 255, 0.78);
+  --ring: rgba(93, 91, 240, 0.35);
+  --grain-opacity: 0;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-elevated: var(--elevated);
+  --color-overlay: var(--overlay);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-glass: var(--glass);
+
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-soft: 0 1px 2px hsl(var(--shadow-color) / 0.12), 0 2px 8px -2px hsl(var(--shadow-color) / 0.1);
+  --shadow-pop: 0 0 0 1px var(--line-strong), 0 12px 32px -8px hsl(var(--shadow-color) / 0.4),
+    0 4px 12px -4px hsl(var(--shadow-color) / 0.25);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  /* Text the user may want to copy stays selectable. */
+  .selectable,
+  input,
+  textarea,
+  [contenteditable] {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  button {
+    cursor: default;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--fg-subtle);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .brand-gradient {
+    background-image: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+  }
+
+  .brand-text {
+    background-image: linear-gradient(120deg, var(--brand-a), var(--brand-b));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Hairline top highlight that makes dark surfaces read as raised. */
+  .surface-highlight {
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.035);
+  }
+  [data-theme="light"] .surface-highlight {
+    box-shadow: 0 1px 2px rgba(15, 18, 30, 0.04);
+  }
+
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+
+  .app-backdrop {
+    background:
+      radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--brand-a) 7%, transparent), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--brand-b) 5%, transparent), transparent 60%),
+      var(--bg);
+  }
+
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+}

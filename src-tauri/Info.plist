@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Required since macOS 15 for mDNS discovery and LAN connections. -->
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>DropLink finds your other computers on this network and sends files to them directly.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_droplink._tcp</string>
+  </array>
+</dict>
+</plist>

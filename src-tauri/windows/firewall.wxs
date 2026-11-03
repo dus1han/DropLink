@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adds an inbound firewall rule for DropLink on private and domain networks
+     when the MSI is installed, and removes it on uninstall. -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <CustomAction Id="DropLinkFirewallAdd" Directory="INSTALLDIR" Execute="deferred" Impersonate="no" Return="ignore"
+      ExeCommand="&quot;[System64Folder]netsh.exe&quot; advfirewall firewall add rule name=&quot;DropLink&quot; dir=in action=allow program=&quot;[INSTALLDIR]DropLink.exe&quot; enable=yes profile=private,domain" />
+    <CustomAction Id="DropLinkFirewallRemove" Directory="INSTALLDIR" Execute="deferred" Impersonate="no" Return="ignore"
+      ExeCommand="&quot;[System64Folder]netsh.exe&quot; advfirewall firewall delete rule name=&quot;DropLink&quot;" />
+    <InstallExecuteSequence>
+      <Custom Action="DropLinkFirewallRemove" Before="RemoveFiles">REMOVE="ALL"</Custom>
+      <Custom Action="DropLinkFirewallAdd" Before="InstallFinalize">NOT REMOVE="ALL"</Custom>
+    </InstallExecuteSequence>
+    <ComponentGroup Id="DropLinkFirewall" />
+  </Fragment>
+</Wix>
