@@ -955,7 +955,7 @@ dependencies = [
 
 [[package]]
 name = "droplink"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "droplink-core",
  "parking_lot",
@@ -978,7 +978,7 @@ dependencies = [
 
 [[package]]
 name = "droplink-core"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "arboard",
  "dirs 5.0.1",

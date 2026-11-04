@@ -1,7 +1,7 @@
 {
   "name": "droplink",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Dushan Fernando",
   "type": "module",
   "scripts": {
