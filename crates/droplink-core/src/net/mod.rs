@@ -194,7 +194,7 @@ impl Engine {
 
     pub(crate) fn spawn_listener(&self, listener: TcpListener, stop: CancellationToken) {
         let engine = self.clone();
-        tokio::spawn(async move {
+        self.spawn(async move {
             loop {
                 let accepted = tokio::select! {
                     a = listener.accept() => a,
@@ -203,7 +203,7 @@ impl Engine {
                 match accepted {
                     Ok((tcp, addr)) => {
                         let engine = engine.clone();
-                        tokio::spawn(async move {
+                        engine.clone().spawn(async move {
                             if let Err(e) = engine.handle_inbound(tcp, addr).await {
                                 tracing::debug!(%addr, "inbound connection ended: {e}");
                             }

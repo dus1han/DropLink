@@ -86,7 +86,7 @@ pub fn forget_device(engine: State<'_, Engine>, id: String) -> CmdResult<()> {
 }
 
 #[tauri::command]
-pub fn pair_device(engine: State<'_, Engine>, id: String) -> CmdResult<String> {
+pub async fn pair_device(engine: State<'_, Engine>, id: String) -> CmdResult<String> {
     engine.pair(&id)
 }
 

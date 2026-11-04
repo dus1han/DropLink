@@ -107,7 +107,7 @@ impl Engine {
         let Some(ctl) = self.transfers.register(id, &row.device_id) else { return };
         let engine = self.clone();
         let id = id.to_string();
-        tokio::spawn(async move {
+        self.spawn(async move {
             let result = engine.run_outgoing(&id, &ctl).await;
             engine.finalize(&id, result);
             engine.transfers.unregister(&id);

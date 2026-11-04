@@ -52,7 +52,7 @@ impl Discovery {
 
         let receiver = daemon.browse(SERVICE_TYPE).map_err(mdns_err)?;
         let stop = engine.shutdown.clone();
-        tokio::spawn(async move {
+        engine.clone().spawn(async move {
             loop {
                 let event = tokio::select! {
                     e = receiver.recv_async() => match e {
@@ -98,7 +98,7 @@ impl Engine {
             }
             let engine = self.clone();
             let info = info.clone();
-            tokio::spawn(async move {
+            self.spawn(async move {
                 let port = info.get_port();
                 let mut verified = false;
                 for ip in info.get_addresses().iter().copied() {

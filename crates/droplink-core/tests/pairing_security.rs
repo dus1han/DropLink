@@ -58,6 +58,20 @@ async fn declined_pairing_grants_no_trust() {
     assert_eq!(b.engine.device_view(&a.id()).unwrap().unwrap().trust, TrustState::Unknown);
 }
 
+/// Synchronous Tauri commands run on the UI thread, which has no Tokio
+/// context. Starting a pairing from there used to panic in `tokio::spawn`
+/// and close the app.
+#[tokio::test]
+async fn pairing_can_start_outside_the_runtime() {
+    let mut a = node("Alpha").await;
+    let mut b = node("Bravo").await;
+    a.engine.connect_manual(&b.addr()).await.unwrap();
+    let (engine, id) = (a.engine.clone(), b.id());
+    std::thread::spawn(move || engine.pair(&id)).join().expect("pair panicked").unwrap();
+    b.wait_for(10, |e| matches!(e, Event::PairingCode { .. }).then_some(())).await;
+    a.wait_for(10, |e| matches!(e, Event::PairingCode { .. }).then_some(())).await;
+}
+
 #[tokio::test]
 async fn untrusted_devices_cannot_send_anything() {
     let mut a = node("Alpha").await;

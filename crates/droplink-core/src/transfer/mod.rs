@@ -506,7 +506,7 @@ impl Engine {
         // Tell the other side so it can free partial data; best effort.
         let engine = self.clone();
         let (id, device) = (id.to_string(), row.device_id.clone());
-        tokio::spawn(async move {
+        self.spawn(async move {
             if let Ok(mut conn) = engine.connect_device(&device, Purpose::Control).await {
                 let _ = conn.send(&Message::Abort { session_id: id }).await;
                 let _ = tokio::time::timeout(Duration::from_secs(5), conn.recv()).await;

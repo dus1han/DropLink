@@ -31,6 +31,18 @@ fn init_logging(app: &AppHandle) -> Option<tracing_appender::non_blocking::Worke
         .with(fmt::layer().with_writer(writer).with_ansi(false))
         .with(fmt::layer().with_writer(std::io::stderr))
         .try_init();
+    // Record panics in the log file: a release build has no console, so
+    // without this a crash leaves no trace of what happened.
+    let previous = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let thread = std::thread::current();
+        tracing::error!(
+            thread = thread.name().unwrap_or("unnamed"),
+            "panic: {info}\n{}",
+            std::backtrace::Backtrace::force_capture()
+        );
+        previous(info);
+    }));
     Some(guard)
 }
 

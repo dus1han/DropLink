@@ -71,7 +71,7 @@ impl Engine {
         let pairing_id = uuid::Uuid::new_v4().to_string();
         let engine = self.clone();
         let (pid, did) = (pairing_id.clone(), device_id.to_string());
-        tokio::spawn(async move {
+        self.spawn(async move {
             let result = engine.run_initiator(&pid, &did).await;
             engine.finish_pairing(&pid, &did, result);
         });

@@ -243,7 +243,7 @@ impl Engine {
             return;
         }
         let engine = self.clone();
-        tokio::spawn(async move {
+        self.spawn(async move {
             let mut tick = tokio::time::interval(POLL_INTERVAL);
             tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
             let mut was_enabled = false;
@@ -319,7 +319,7 @@ impl Engine {
         for id in targets {
             let engine = self.clone();
             let (content, hash, png) = (content.clone(), hash.clone(), png.clone());
-            tokio::spawn(async move {
+            self.spawn(async move {
                 if let Err(e) = engine.push_clipboard(&id, &content, &hash, png.as_deref().map(|v| v.as_slice()), false).await {
                     tracing::debug!(device = %id, "clipboard sync failed: {e}");
                 }

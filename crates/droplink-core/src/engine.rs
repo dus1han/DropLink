@@ -76,6 +76,11 @@ pub struct Inner {
     /// Device IDs from mDNS whose DropLink handshake is being checked.
     pub(crate) verifying: Mutex<HashSet<String>>,
     pub(crate) shutdown: CancellationToken,
+    /// The runtime the engine was started on. Engine methods are also called
+    /// from threads without a Tokio context (synchronous Tauri commands run on
+    /// the UI thread), where `tokio::spawn` panics and takes the app down, so
+    /// background work is always spawned through this handle.
+    rt: tokio::runtime::Handle,
 }
 
 /// Cheaply clonable handle to the running engine.
@@ -130,6 +135,7 @@ impl Engine {
             discovery: Mutex::new(None),
             verifying: Mutex::new(HashSet::new()),
             shutdown: CancellationToken::new(),
+            rt: tokio::runtime::Handle::current(),
             cfg,
         }));
 
@@ -174,6 +180,15 @@ impl Engine {
 
     pub fn settings(&self) -> Settings {
         self.settings.read().clone()
+    }
+
+    /// Spawns a task on the engine's runtime; safe to call from any thread.
+    pub(crate) fn spawn<F>(&self, fut: F) -> tokio::task::JoinHandle<F::Output>
+    where
+        F: std::future::Future + Send + 'static,
+        F::Output: Send + 'static,
+    {
+        self.rt.spawn(fut)
     }
 
     pub(crate) fn emit(&self, e: Event) {
@@ -560,7 +575,7 @@ impl Engine {
 
     fn spawn_housekeeping(&self) {
         let engine = self.clone();
-        tokio::spawn(async move {
+        self.spawn(async move {
             // Give startup a moment before touching the disk.
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             if let Err(e) = engine.expire_stale_partials(7 * 86_400_000) {
