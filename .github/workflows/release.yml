@@ -1,7 +1,7 @@
 # Builds DropLink installers for macOS (universal: Apple Silicon + Intel) and
 # Windows x64. Run it from the Actions tab ("Run workflow") or by pushing a tag
 # like v1.0.0. Installers are attached to the run as artifacts and, for tags,
-# to a draft GitHub release.
+# to a GitHub release that is published once both platforms have uploaded.
 #
 # Required secret: TAURI_SIGNING_PRIVATE_KEY (the updater signing key; its
 # password secret TAURI_SIGNING_PRIVATE_KEY_PASSWORD may be left unset).
@@ -19,7 +19,37 @@ on:
     tags: ["v*"]
 
 jobs:
+  # For tags: one draft release that both platform builds upload into. Letting
+  # each build create the release itself races (the second job fails with
+  # "Not Found" listing release assets), and a draft keeps installed apps from
+  # seeing a half-uploaded release.
+  create-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.create.outputs.result }}
+    steps:
+      - id: create
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = process.env.GITHUB_REF_NAME;
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `DropLink ${tag}`,
+              body: "See the commits since the previous release for what changed.",
+              draft: true,
+            });
+            return data.id;
+
   build:
+    needs: create-release
+    # Also runs for manual builds, where create-release is skipped.
+    if: ${{ !cancelled() && needs.create-release.result != 'failure' }}
     permissions:
       contents: write
     strategy:
@@ -71,8 +101,8 @@ jobs:
 
       # Update packages are signed with TAURI_SIGNING_PRIVATE_KEY (repository
       # secret); installed apps verify them against the public key in
-      # tauri.conf.json. A tag push publishes the release, which is what
-      # installed copies pick up through releases/latest/download/latest.json.
+      # tauri.conf.json. For tags the packages and latest.json go into the
+      # draft release; manual runs only produce workflow artifacts.
       - name: Build installers
         uses: tauri-apps/tauri-action@v0
         env:
@@ -81,10 +111,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: ${{ matrix.args }}
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          releaseName: DropLink ${{ github.ref_name }}
-          releaseBody: See the commits since the previous release for what changed.
-          releaseDraft: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           includeUpdaterJson: true
 
       - name: Upload installers
@@ -97,3 +124,25 @@ jobs:
             target/release/bundle/msi/*.msi
             target/release/bundle/nsis/*.exe
           if-no-files-found: error
+
+  # Publish only once every platform has uploaded; from then on installed
+  # copies find it through releases/latest/download/latest.json.
+  publish-release:
+    needs: [create-release, build]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: Number(process.env.RELEASE_ID),
+              draft: false,
+              make_latest: "true",
+            });
