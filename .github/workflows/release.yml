@@ -3,7 +3,11 @@
 # like v1.0.0. Installers are attached to the run as artifacts and, for tags,
 # to a draft GitHub release.
 #
-# Optional signing secrets (unsigned builds work without them):
+# Required secret: TAURI_SIGNING_PRIVATE_KEY (the updater signing key; its
+# password secret TAURI_SIGNING_PRIVATE_KEY_PASSWORD may be left unset).
+# Release: bump the version (npm run release -- 1.0.1) and push the tag.
+#
+# Optional Apple signing secrets (unsigned builds work without them):
 #   macOS:   APPLE_CERTIFICATE (base64 .p12), APPLE_CERTIFICATE_PASSWORD,
 #            APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID
 
@@ -65,15 +69,23 @@ jobs:
           done
           if [ -z "$APPLE_SIGNING_IDENTITY" ]; then echo "APPLE_SIGNING_IDENTITY=-" >> "$GITHUB_ENV"; fi
 
+      # Update packages are signed with TAURI_SIGNING_PRIVATE_KEY (repository
+      # secret); installed apps verify them against the public key in
+      # tauri.conf.json. A tag push publishes the release, which is what
+      # installed copies pick up through releases/latest/download/latest.json.
       - name: Build installers
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: ${{ matrix.args }}
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
           releaseName: DropLink ${{ github.ref_name }}
-          releaseDraft: true
+          releaseBody: See the commits since the previous release for what changed.
+          releaseDraft: false
+          includeUpdaterJson: true
 
       - name: Upload installers
         uses: actions/upload-artifact@v4

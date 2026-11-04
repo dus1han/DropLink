@@ -26,6 +26,7 @@ import { formatBytes, osLabel, pluralize } from "@/lib/format";
 import type { CacheInfo, NetworkInterface, NotificationSettings } from "@/lib/types";
 import { confirm } from "@/store/confirm";
 import { useApp } from "@/store/app";
+import { useUpdate } from "@/store/update";
 
 type Section = "general" | "network" | "transfers" | "clipboard" | "security" | "notifications" | "storage" | "about";
 
@@ -470,6 +471,34 @@ function Storage() {
   );
 }
 
+function UpdateButton() {
+  const { status, version, progress, error, checkForUpdates, install } = useUpdate();
+  const busy = status === "checking" || status === "downloading" || status === "installing";
+  const label =
+    status === "available"
+      ? `Install ${version} & restart`
+      : status === "downloading"
+        ? `Downloading${progress != null ? ` ${Math.round(progress * 100)}%` : "…"}`
+        : status === "installing"
+          ? "Installing…"
+          : "Check for updates";
+  const note =
+    status === "upToDate" ? "DropLink is up to date." : status === "error" ? `Update failed: ${error}` : null;
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="primary"
+        loading={busy}
+        onClick={() => (status === "available" ? install() : checkForUpdates())}
+      >
+        {label}
+      </Button>
+      {note && <span className="text-xs text-fg-muted">{note}</span>}
+    </>
+  );
+}
+
 function About() {
   const local = useApp((st) => st.local);
   const platform = useApp((st) => st.platform);
@@ -489,7 +518,8 @@ function About() {
         no cloud storage.
       </p>
       <p className="mt-3 text-xs text-fg-subtle">Developed by Dushan Fernando · © 2026 Dushan Fernando</p>
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <UpdateButton />
         <Button size="sm" variant="danger" onClick={() => api.quit()}>
           Quit DropLink
         </Button>

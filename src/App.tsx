@@ -5,6 +5,7 @@ import { LogoMark } from "@/components/Logo";
 import { useTheme } from "@/hooks/useTheme";
 import { Shell } from "@/layout/Shell";
 import { useApp } from "@/store/app";
+import { useUpdate } from "@/store/update";
 
 export default function App() {
   const ready = useApp((s) => s.ready);
@@ -16,6 +17,18 @@ export default function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // Look for a new release shortly after startup, then every six hours.
+  useEffect(() => {
+    if (!ready) return;
+    const run = () => void useUpdate.getState().checkForUpdates(true);
+    const first = window.setTimeout(run, 8_000);
+    const every = window.setInterval(run, 6 * 3_600_000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(every);
+    };
+  }, [ready]);
 
   if (fatal) {
     return (
