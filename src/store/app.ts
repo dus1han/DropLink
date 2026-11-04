@@ -120,6 +120,23 @@ function readCollapsed(): boolean {
   }
 }
 
+/** Marks every unfinished pairing with `deviceId` as successful. */
+function resolvePairings(
+  pairings: Record<string, PairingState>,
+  deviceId: string,
+  message: string,
+): Record<string, PairingState> {
+  let changed = false;
+  const next = { ...pairings };
+  for (const p of Object.values(pairings)) {
+    if (p.deviceId === deviceId && p.phase !== "success" && p.phase !== "failed") {
+      next[p.pairingId] = { ...p, phase: "success", message };
+      changed = true;
+    }
+  }
+  return changed ? next : pairings;
+}
+
 export const useApp = create<AppState>((set, get) => {
   const notify = (n: Omit<AppNotification, "id" | "at" | "read">) =>
     set((s) => ({
@@ -135,7 +152,16 @@ export const useApp = create<AppState>((set, get) => {
         set((s) => ({ devices: { ...s.devices, [e.device.id]: e.device } }));
         break;
       case "deviceUpdated":
-        set((s) => ({ devices: { ...s.devices, [e.device.id]: e.device }, statsVersion: s.statsVersion + 1 }));
+        set((s) => ({
+          devices: { ...s.devices, [e.device.id]: e.device },
+          statsVersion: s.statsVersion + 1,
+          // The device is trusted, so any dialog still waiting on a pairing
+          // with it has in fact succeeded (e.g. a missed pairingFinished).
+          pairings:
+            e.device.trust === "trusted"
+              ? resolvePairings(s.pairings, e.device.id, `${e.device.name} is now a trusted device`)
+              : s.pairings,
+        }));
         break;
       case "deviceDisconnected":
         set((s) => {
@@ -177,7 +203,7 @@ export const useApp = create<AppState>((set, get) => {
           const prev = s.pairings[e.pairingId];
           if (!prev) {
             return e.success
-              ? {}
+              ? { pairings: resolvePairings(s.pairings, e.deviceId, e.message) }
               : {
                   toasts: [...s.toasts, { id: uid(), tone: "error" as const, title: "Pairing failed", body: e.message }],
                 };
